@@ -54,11 +54,20 @@ type avances{
 }
 
 type Mutation{
-  singUp(input:SingUpInput):AutUser!
+  signUp(input:SignUpInput):AutUser!
+  signIn(input:SignInInput):AutUser!
 
 }
 
-input SingUpInput{
+input SignUpInput{
+
+  mail: String!
+  identificacion: String!
+  nombre: String!
+  password: String!
+  rol: String!
+}
+input SignInInput{
 
   mail: String!
   identificacion: String!
@@ -84,7 +93,7 @@ const resolvers = {
 
   //Mutaciones
   Mutation: {
-    singUp: async(root,{input},{db})=>{
+    signUp: async(root,{input},{db})=>{
         const hashedPassword=bcrypt.hashSync(input.password)
         const newUser={
           ...input,
