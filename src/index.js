@@ -23,7 +23,8 @@ const getUserFromToken = async (token, db) => {
 
 const resolvers = {
     Query: {
-      misProyectosLider: async(_, __, { db,  user }) => {            //ver lista de proyectos
+      
+      misProyectos: async(_, __, { db,  user }) => {            //ver lista de proyectos
         if ( !user ) { throw new Error('No esta autenticado, por favor inicie sesion'); }
         const rol = user.rol
         if ( rol=="Lider") {
@@ -31,8 +32,20 @@ const resolvers = {
                                     .find({ userIds: user._id })
                                     .toArray();
         }
-      },
 
+         if ( rol=="Estudiante") {
+          return await db.collection('proyectos')
+                                  .find()
+                                  .toArray();
+        } 
+
+        if ( rol=="Administrador") {
+            return await db.collection('proyectos')
+                                    .find()
+                                    .toArray();
+        }
+      },
+      
       getproyectos: async(_, { id }, { db, user }) => {         //ver proyectos por ID
         if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión');}
         return await db.collection('proyectos').findOne({ _id: ObjectId(id) });
@@ -57,9 +70,54 @@ const resolvers = {
       getUsuarios: async(_, { id }, { db, user }) => {  //ver proyectos por ID
         if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión');}
         return await db.collection('user').findOne({ _id: ObjectId(id) });
-      }
+      },
 
-    },
+      misInscripciones: async(_, __, { db, user  }) => {              // ver lista de inscripciones
+        if( !user ) { throw new Error('No esta autenticado, por favor inicie sesion'); }
+
+        const rol = user.rol
+        if ( rol=="Lider" )  {
+
+          return await db.collection('inscripciones')
+          .find()
+          .toArray();
+          
+        }
+                             
+      }, 
+
+      getInscripciones: async(_, { id }, { db, user }) => {  //ver inscripciones por ID
+        if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión');}
+        return await db.collection('inscripciones').findOne({ _id: ObjectId(id) });
+      },
+
+
+
+    
+     misavances: async(_, __, { db, user  }) => {              // ver lista de inscripciones
+      if( !user ) { throw new Error('No esta autenticado, por favor inicie sesion'); }
+
+      const rol = user.rol
+      if ( rol=="Lider" )  {
+
+        return await db.collection('avances')
+        .find()
+        .toArray();
+        
+      }
+      if ( rol=="Estudiante") {
+        return await db.collection('avances')
+                                .find()
+                                .toArray();
+      } 
+    }, 
+      getavances: async(_, { id }, { db, user }) => {  //ver inscripciones por ID
+        if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión');}
+        return await db.collection('avances').findOne({ _id: ObjectId(id) });
+      }
+},
+                           
+      
 
   //Mutaciones
   Mutation: {
@@ -169,12 +227,15 @@ const resolvers = {
 
     updateproyectoLider: async(root,{id,nombreProy,objGneral,objEspe,presupuesto}, {db, user}) =>{ // Actualizamos un proyecto
       if(!user){console.log("No esta autenticado, por favor inicie sesion")}
+      const rol = user.rol
+      if ( rol=="Lider") {
       const result= await db.collection("proyectos").updateOne({_id:ObjectId(id)
       },{ $set:{nombreProy,objGneral,objEspe,presupuesto}, // se setea el nuevo nombre del proyecto
           
-    })
-    console.log("Proyecto Actulizado correctamente")
-    return await db.collection("proyectos").findOne({_id:ObjectId(id)});//regresa los valores del proyecto Ingresado
+      })
+      console.log("Proyecto Actulizado correctamente")
+      return await db.collection("proyectos").findOne({_id:ObjectId(id)});//regresa los valores del proyecto Ingresado
+      }
     },
 
     deleteproyecto: async(root, {id}, {db, user}) =>{ // elimina un proyecto
@@ -186,30 +247,112 @@ const resolvers = {
     
      addUserProyecto: async(root,{proyectosId, userId}, {db,user}) =>{
       if(!user){console.log("No esta autenticado favor iniciar sesion")}
-      const proyectos = await db.collection(proyectos).findOne({_id:ObjectId(proyectosId)});
+      const proyectos = await db.collection("proyectos").findOne({_id:ObjectId(proyectosId)});
       const usuario = await db.collection("user").findOne({_id:ObjectId(userId)});
 
       if(!proyectos){
         return null;
       }
-      if(proyectos.userIds.find((dbId) => dbId.toString()===userId.toString())){
+      if(proyectos.userIds.find((dbId) => dbId.toString()=== userId.toString())){
         return proyectos;
       }
       await db.collection("proyectos").updateOne({_id:ObjectId(proyectosId)
       },{
         $push:{
           userIds:ObjectId(userId),
-          userNames:usuario.nombre,
-          userRol:user.rol,
+          userNames:usuario.nombre
+          
         }
       })
       proyectos.userIds.push(ObjectId(userId))
       proyectos.userNames.push(usuario.nombre)
       proyectos.userRol.push(usuario.rol)
       return proyectos;      
-      } 
+      } ,
 
+       createinscripciones: async (root, {proyectosId,userId,estadoIns },{db, user}) =>{   
+        if(!user){console.log("No esta autenticado, por favor inicie sesion")}
+        const rol = user.rol
+        if ( rol=="Estudiante") {
+                            
+          const newinscripciones={
 
+            proyectosId: ObjectId(proyectosId), 
+                 
+            userId: ObjectId(userId),
+            userNames:[user.nombre],
+            userApe:[user.apellido],
+            userRol:[user.rol],
+            estadoIns
+          }
+          
+          console.log("Inscripcion creado correctamente")
+          const result = await db.collection("inscripciones").insertOne(newinscripciones);          
+          return newinscripciones;
+
+        }
+      },
+
+      updateInscripcionesLider: async(root,{id,estadoIns}, {db, user}) =>{ // Actualizamos un proyecto
+        if(!user){console.log("No esta autenticado, por favor inicie sesion")}
+        const rol = user.rol
+        if ( rol=="Lider")  { 
+        const result= await db.collection("inscripciones").updateOne({_id:ObjectId(id)  
+        },{ 
+            $set: {estadoIns} // se setea el nuevo nombre del proyecto 
+          })        
+        console.log("Inscripcion Actulizada correctamente")
+        return await db.collection("inscripciones").findOne({_id:ObjectId(id)});//regresa los valores del proyecto Ingresado
+        }
+      },
+      createavances: async (root, {proyectosId,userId,descrip,ObserLider },{db, user}) =>{   
+        if(!user){console.log("No esta autenticado, por favor inicie sesion")}
+        const rol = user.rol
+        if ( rol=="Estudiante") {
+                            
+          const newavances={
+
+            proyectosId: ObjectId(proyectosId), 
+                 
+            userId: ObjectId(userId),
+            userNames:[user.nombre],
+            userApe:[user.apellido],
+            userRol:[user.rol],
+            descrip,
+            ObserLider
+          }
+          
+          console.log("avance creado correctamente")
+          const result = await db.collection("avances").insertOne(newavances);          
+          return newavances;
+
+        }
+      },
+      updateavancesLider: async(root,{id,ObserLider}, {db, user}) =>{ // Actualizamos un proyecto
+        if(!user){console.log("No esta autenticado, por favor inicie sesion")}
+        const rol = user.rol
+        if ( rol=="Lider")  { 
+        const result= await db.collection("avances").updateOne({_id:ObjectId(id)  
+        },{ 
+            $set: {ObserLider} // se setea el nuevo nombre del proyecto 
+          })        
+        console.log("avances Actulizados correctamente")
+        return await db.collection("avances").findOne({_id:ObjectId(id)});//regresa los valores del proyecto Ingresado
+        }
+      },
+      updateavancesEstudiante: async(root,{id,descrip}, {db, user}) =>{ // Actualizamos un proyecto
+        if(!user){console.log("No esta autenticado, por favor inicie sesion")}
+        const rol = user.rol
+        if ( rol=="Estudiante")  { 
+        const result= await db.collection("avances").updateOne({_id:ObjectId(id)  
+        },{ 
+            $set: {descrip} // se setea el nuevo nombre del proyecto 
+          })        
+        console.log("avances Actulizados correctamente")
+        return await db.collection("avances").findOne({_id:ObjectId(id)});//regresa los valores del proyecto Ingresado
+        }
+      },
+ 
     },  
 
   //Parametroinmutable del user, id:_id
@@ -220,7 +363,7 @@ const resolvers = {
     }
   }, 
 
-
+  //===========================================================
   proyectos:{
     id:({ _id, id })=> _id || id,
 
@@ -230,7 +373,35 @@ const resolvers = {
       )
     ),
   },
+  //===============================================================
 
+   inscripciones: {
+     
+    id:(root)=>{
+      return root._id;
+    },
+    proyectos: async ({ proyectosId }, _, { db }) =>(
+      await db.collection("proyectos").findOne({ _id:ObjectId(proyectosId)})
+      ),
+
+    user: async ({ userId }, _, { db }) => (
+      await db.collection("user").findOne({ _id:ObjectId(userId)})
+      ),
+  },
+  //==================================================================
+  avances: {
+     
+    id:(root)=>{
+      return root._id;
+    },
+    proyectos: async ({ proyectosId }, _, { db }) =>(
+      await db.collection("proyectos").findOne({ _id:ObjectId(proyectosId)})
+      ),
+
+    user: async ({ userId }, _, { db }) => (
+      await db.collection("user").findOne({ _id:ObjectId(userId)})
+      ),
+  },
 }
 
 
@@ -275,10 +446,15 @@ start();
   type Query{
     
     misProyectos: [proyectos!]!
-    misProyectosLider: [proyectos!]!
+
     getproyectos(id:ID!):proyectos
     misUsuarios: [user!]
     getUsuarios(id:ID!):user
+    misInscripciones:[inscripciones!]!
+    getInscripciones(id:ID!):inscripciones
+    misavances:[avances!]!
+    getavances(id:ID!):avances
+
   }
  
 
@@ -295,7 +471,17 @@ start();
     updateproyectoLider(id:ID!, nombreProy:String!,objGneral:String!,objEspe:String!,presupuesto:Float!):proyectos!
     deleteproyecto(id:ID!):Boolean!
 
-    addUserProyecto(proyectosId:ID!, userId:ID!):proyectos
+    addUserProyecto(proyectosId:ID!, userId:ID!,):proyectos
+
+    createinscripciones(proyectosId:ID!,userId:ID!,estadoIns:String!):inscripciones!
+
+    updateInscripcionesLider(id:ID!,estadoIns:String!):inscripciones!
+
+    createavances(proyectosId:ID!,userId:ID!,descrip:String!,ObserLider:String!):avances!
+
+    updateavancesLider(id:ID!,ObserLider:String!):avances!
+
+    updateavancesEstudiante(id:ID!,descrip:String!):avances!
   }
 
 
