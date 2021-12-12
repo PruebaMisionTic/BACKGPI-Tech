@@ -126,6 +126,7 @@ const resolvers = {
           const newUser={  // creamos nuevo usuario
             ...input,
             password:hashedPassword,
+            
           }
 
       const result = await db.collection("user").insertOne(newUser);
@@ -494,6 +495,7 @@ start();
     password: String!
     rol: String!
     status:String!
+  
   }
   input SignInInput{
 
