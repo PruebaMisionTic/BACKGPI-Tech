@@ -1,0 +1,3 @@
+[submodule "BACKGPI-Tech"]
+	path = BACKGPI-Tech
+	url = https://github.com/PruebaMisionTic/BACKGPI-Tech.git
