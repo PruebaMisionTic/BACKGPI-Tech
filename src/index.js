@@ -467,9 +467,9 @@ start();
     updateUsuarioLider(id:ID!, status:String):user!
     updateUsuario(id:ID!, nombre:String!, apellido:String!, identificacion:String!,password:String!):user!
 
-    createproyecto(nombreProy:String!,objGneral:String!,objEspe:String!,presupuesto:Float!,estadoPro:String!,fase:String! ):proyectos!
+    createproyecto(nombreProy:String!,objGneral:String!,objEspe:String!,presupuesto:String!,estadoPro:String!,fase:String! ):proyectos!
     updateproyectoAdmin(id:ID!,estadoPro:String!,fase:String!):proyectos!
-    updateproyectoLider(id:ID!, nombreProy:String!,objGneral:String!,objEspe:String!,presupuesto:Float!):proyectos!
+    updateproyectoLider(id:ID!, nombreProy:String!,objGneral:String!,objEspe:String!,presupuesto:String!):proyectos!
     deleteproyecto(id:ID!):Boolean!
 
     addUserProyecto(proyectosId:ID!, userId:ID!,):proyectos
@@ -524,7 +524,7 @@ start();
     nombreProy: String!
     objGneral: String!
     objEspe: String!
-    presupuesto: Float!
+    presupuesto: String!
     createdAt: String!
     fechafin: String!
     user: [user!]!
