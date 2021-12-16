@@ -463,9 +463,9 @@ start();
   type Mutation{
     signUp(input:SignUpInput):AutUser!
     signIn(input:SignInInput):AutUser!
-    updateUsuarioAdmin(id:ID!, status:String):user!
+    updateUsuarioAdmin(id:String!, status:String):user!
     updateUsuarioLider(id:ID!, status:String):user!
-    updateUsuario(id:ID!, nombre:String!, apellido:String!, identificacion:String!,password:String!):user!
+    updateUsuario(id:String!, nombre:String!, apellido:String!, identificacion:String!,status:String,rol:String):user!
 
     createproyecto(nombreProy:String!,objGneral:String!,objEspe:String!,presupuesto:String!,estadoPro:String!,fase:String! ):proyectos!
     updateproyectoAdmin(id:ID!,estadoPro:String!,fase:String!):proyectos!
@@ -509,7 +509,7 @@ start();
   }
 
   type user{
-    id: ID!
+    id: String!
     mail: String!
     identificacion: String!
     nombre: String!
